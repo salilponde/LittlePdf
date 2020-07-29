@@ -1,7 +1,9 @@
 ﻿using LittlePdf.Pdf;
+using LittlePdf.Utils;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
@@ -10,6 +12,60 @@ namespace LittlePdf.Test.Functional
 {
     public class FunctionalTests
     {
+        [Fact]
+        public void TextWrapperTest()
+        {
+            var tw = new TextWrapper(40);
+            var lines = tw.Wrap("Eris is the second-largest known dwarf-a-complicate-degenerating-progressing-peculiar-rhombosis-cultivating planet in the Solar System, slightly smaller by volume than the dwarf planet Pluto, although it is 27 percent more massive. Discovered in January 2005 by a team based at Palomar Observatory, it was named after Eris, the Greek goddess of strife and discord. The ninth-most-massive object directly orbiting the Sun, Eris is the largest object in the Solar System that has not been visited by a spacecraft. It is a member of a high-eccentricity population known as the scattered disk and has one known moon, Dysnomia. It is about 96 astronomical units (14.4 billion kilometres; 8.9 billion miles) from the Sun, roughly three times as far away as Pluto. Except for some long-period comets, Eris and Dysnomia were the most distant known natural objects in the Solar System until 2018 VG18 was discovered in 2018.");
+
+            var sb = new StringBuilder();
+            foreach (var line in lines)
+            {
+                for (int i = 0; i < line.RemainingSpace; i++) { sb.Append(" "); }
+
+                foreach (var word in line.Words)
+                {
+                    sb.Append(word);
+                    if (word != line.Words.Last())
+                    {
+                        sb.Append(" ");
+                    }
+                }
+                sb.Append("    ");
+                sb.Append(line.RemainingSpace.ToString("G29"));
+                sb.Append("\n");
+            }
+            var wrappedText = sb.ToString();
+        }
+
+        [Fact]
+        public async Task DocumentTest()
+        {
+            //var p = new PrivateFontCollection();
+            //var fontFiles = Directory.GetFiles(Environment.GetFolderPath(Environment.SpecialFolder.Fonts), "Calibri*");
+            //foreach (var fontFile in fontFiles)
+            //{
+            //    p.AddFontFile(fontFile);
+            //}
+
+            //var installedFonts = new InstalledFontCollection();
+            //var families = installedFonts.Families;
+
+            var fileName = @"c:\temp\d.pdf";
+            File.Delete(fileName);
+
+            var document = new Document();
+            var fHelvetica = document.CreateFont("Helvetica");
+            var fHelveticaBold = document.CreateFont("Helvetica-Bold");
+            var fHelveticaItalic = document.CreateFont("Helvetica-Oblique");
+
+            var page1 = document.AddPage();
+            var page2 = document.AddPage();
+            page2.Rotate();
+
+            await document.SaveAsync(fileName);
+        }
+
         [Fact]
         public async Task WriterTest()
         {

@@ -11,6 +11,16 @@ namespace LittlePdf.Pdf
         public int GenerationNumber { get; set; }
         public PdfObject Value { get; private set; }
 
+        private PdfIndirectObjectReference _reference;
+        public PdfIndirectObjectReference Reference
+        {
+            get
+            {
+                if (_reference == null) _reference = new PdfIndirectObjectReference(this);
+                return _reference;
+            }
+        }
+
         public PdfIndirectObject(PdfObject value)
         {
             Initialize(_nextObjectNumber++, 0, value);
