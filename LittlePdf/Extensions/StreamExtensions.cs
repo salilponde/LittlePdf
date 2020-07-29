@@ -6,11 +6,11 @@ namespace LittlePdf.Extensions
 {
     public static class StreamExtensions
     {
-        public static Task WriteByteAsync(this Stream stream, byte value)
+        public static Task WriteAsync(this Stream stream, byte[] value)
         {
             if (stream == null)
                 throw new ArgumentNullException("stream");
-            return stream.WriteAsync(new[] { value }, 0, 1);
+            return stream.WriteAsync(value, 0, value.Length);
         }
     }
 }
