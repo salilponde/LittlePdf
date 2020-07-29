@@ -4,18 +4,11 @@ using System.Text;
 
 namespace LittlePdf.Utils
 {
-    public class Line
-    {
-        public List<string> Words { get; internal set; } = new List<string>();
-        public double RemainingSpace { get; internal set; }
-    }
-
     public class Tokenizer
     {
         private string _text;
         private int _length;
-        private int _p = 0;
-        private bool _lastWasWord = false;
+        private int _pos = 0;
 
         public Tokenizer(string text)
         {
@@ -25,38 +18,108 @@ namespace LittlePdf.Utils
 
         public string Next()
         {
-            var sb = new StringBuilder();
-
-            if (_lastWasWord)
+            while (_pos < _length)
             {
-                while (_p < _length)
-                {
-                    var c = _text[_p];
+                var c = _text[_pos];
 
-                    if (c == ' ' || c == '\t')
+                if (c == '\r')
+                {
+                    _pos++;
+                    if (_text[_pos] == '\n') _pos++;
+                    return "\n";
+                }
+                else if (c == '\n')
+                {
+                    _pos++;
+                    return "\n";
+                }
+                else if (c == ' ' || c == '\t')
+                {
+                    _pos++;
+
+                    var sb = new StringBuilder();
+                    while (true)
                     {
-                        sb.Append(c);
+                        c = _text[_pos];
+                        if (c == ' ' || c == '\t')
+                        {
+                            sb.Append(' ');
+                            _pos++;
+                        }
+                        else
+                        {
+                            break;
+                        }
                     }
-                    else
+                    var spaces = sb.ToString();
+                    if (!string.IsNullOrEmpty(spaces)) return spaces;
+                }
+                else
+                {
+                    var sb = new StringBuilder();
+                    while (_pos < _length)
                     {
-                        _lastWasWord = false;
-                        break;
+                        c = _text[_pos];
+                        if (c != ' ' && c != '\t' && c != '\r' && c != '\n')
+                        {
+                            sb.Append(c);
+                            _pos++;
+                        }
+                        else
+                        {
+                            break;
+                        }
                     }
+                    return sb.ToString();
                 }
             }
-            while (_p < _length)
+
+            return null;
+        }
+    }
+
+    public class Line
+    {
+        private double _totalWidth;
+        private double _spaceWidth;
+        private double _currentWordsWidth;
+        private double _currentWordsAndSpacesWidth;
+
+        public List<string> Words { get; internal set; } = new List<string>();
+        public double WordsLength { get; internal set; }
+        public double RemainingWidthForWords
+        {
+            get
             {
-                var c = _text[_p];
-
-                if (c == ' ' || c == '\t' || c == '\r' || c == '\n')
-                {
-                    break;
-                }
-
-                sb.Append(c);
+                return (_totalWidth - _currentWordsAndSpacesWidth);
             }
+        }
+        public double RemainingWidth
+        {
+            get
+            {
+                if (Words.Count == 0) return 0;
 
-            return sb.ToString();
+                return _totalWidth - (_currentWordsWidth + _spaceWidth * (Words.Count - 1));
+            }
+        }
+
+        public Line(double width, double spaceWidth)
+        {
+            _totalWidth = width;
+            _spaceWidth = spaceWidth;
+        }
+
+        public bool CanHold(double width)
+        {
+            return width <= (_totalWidth - _currentWordsAndSpacesWidth);
+        }
+
+        public void AddWord(string word, double width)
+        {
+            Words.Add(word);
+            _currentWordsWidth += width;
+            _currentWordsAndSpacesWidth += width + _spaceWidth;
         }
     }
 
@@ -64,103 +127,81 @@ namespace LittlePdf.Utils
     {
         private double _boxWidth;
         private double _boxHeight;
+        private double _spaceWidth;
 
         public TextWrapper(double width, double height = -1)
         {
             _boxWidth = width;
             _boxHeight = height;
+            _spaceWidth = GetTextWidth(" ");
         }
 
         public List<Line> Wrap(string text)
         {
-            var ret = new List<Line>();
-            if (text == null || string.IsNullOrEmpty(text)) return ret;
+            var lines = new List<Line>();
+            if (text == null || string.IsNullOrEmpty(text)) return lines;
 
-            var pos = 0;
-            var length = text.Length;
-            string word = null;
+            var line = new Line(_boxWidth, _spaceWidth);
 
-            var line = new Line { RemainingSpace = _boxWidth };
-            var tokenBuilder = new StringBuilder();
-            while (pos < length)
+            var tokenizer = new Tokenizer(text);
+            string token;
+            while ((token = tokenizer.Next()) != null)
             {
-                if (!string.IsNullOrEmpty(word))
+                if (token == "\n")
                 {
-                    var wordWidth = GetTextWidth(word);
-                    if (wordWidth <= line.RemainingSpace)
-                    {
-                        line.Words.Add(word);
-                        var whiteSpace = 1;
-                        if ((wordWidth + whiteSpace) > line.RemainingSpace) whiteSpace = 0;
-                        line.RemainingSpace -= (wordWidth + whiteSpace);
-                        word = null;
-                        tokenBuilder.Clear();
-                    }
-                    else if (wordWidth <= _boxWidth)
-                    {
-                        ret.Add(line);
-                        if (line.RemainingSpace > 0) line.RemainingSpace++;
-                        line = new Line { RemainingSpace = _boxWidth };
-                        line.Words.Add(word);
-                        var whiteSpace = 1;
-                        if ((wordWidth + whiteSpace) >= line.RemainingSpace) whiteSpace = 0;
-                        line.RemainingSpace -= (wordWidth + whiteSpace);
-                        word = null;
-                        tokenBuilder.Clear();
-                    }
-                    else
-                    {
-                        var (part1, part2) = SplitLongWord(word, line.RemainingSpace);
-                        line.Words.Add(part1);
-                        ret.Add(line);
-                        line.RemainingSpace = 0;
-                        line = new Line { RemainingSpace = _boxWidth };
-                        word = part2;
-                        continue;
-                    }
-                }
-
-                var c = text[pos];
-                if (c == '\r')
-                {
-                    if (text[pos + 1] == '\n') pos += 2;    // Eat both \r and \n
-                    ret.Add(line);
-                    if (line.RemainingSpace > 0) line.RemainingSpace++;
-                    line = new Line { RemainingSpace = _boxWidth };
-                }
-                else if (c == '\n')
-                {
-                    pos++;
-                    ret.Add(line);
-                    if (line.RemainingSpace > 0) line.RemainingSpace++;
-                    line = new Line { RemainingSpace = _boxWidth };
-                }
-                else if (c != ' ' && c != '\t')
-                {
-                    while (c != ' ' && c != '\t' && c != '\r' && c != '\n')
-                    {
-                        tokenBuilder.Append(c);
-                        if (++pos >= length) break;
-                        c = text[pos];
-                    }
-                    if (c == ' ' || c == '\t') ++pos;  // Eat single space or tab
-                    word = tokenBuilder.ToString();
+                    lines.Add(line);
+                    line = new Line(_boxWidth, _spaceWidth);
                 }
                 else
                 {
-                    // If we are here it means that there were multiple space or tabs between words.
-                    // In this case we should treat these as a word.
-                    while (c == ' ' || c == '\t')
+                    var wordWidth = GetTextWidth(token);
+                    if (line.CanHold(wordWidth))
                     {
-                        tokenBuilder.Append(c);
-                        if (++pos >= length) break;
-                        c = text[pos];
+                        line.AddWord(token, wordWidth);
                     }
-                    word = tokenBuilder.ToString();
+                    else 
+                    {
+                        lines.Add(line);
+                        line = new Line(_boxWidth, _spaceWidth);
+
+                        if (line.CanHold(wordWidth))
+                        {
+                            line.AddWord(token, wordWidth);
+                        }
+                        else
+                        {
+                            while (true)
+                            {
+                                var (part1, part2) = SplitLongWord(token, line.RemainingWidthForWords);
+                                var part1Width = GetTextWidth(part1);
+                                line.AddWord(part1, part1Width);
+                                lines.Add(line);
+                                line = new Line(_boxWidth, _spaceWidth);
+
+                                if (!string.IsNullOrEmpty(part2))
+                                {
+                                    var part2Width = GetTextWidth(part2);
+                                    if (line.CanHold(part2Width))
+                                    {
+                                        line.AddWord(part2, part2Width);
+                                        break;
+                                    }
+                                    else
+                                    {
+                                        token = part2;
+                                    }
+                                }
+                                else
+                                {
+                                    break;
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
-            return ret;
+            return lines;
         }
 
         private double GetTextWidth(string text)
@@ -170,7 +211,7 @@ namespace LittlePdf.Utils
 
         private (string, string) SplitLongWord(string text, double remainingSpace)
         {
-            var cut = 10;
+            var cut = 1;
 
             do
             {
@@ -198,7 +239,7 @@ namespace LittlePdf.Utils
                 }
                 else
                 {
-                    cut += 10;
+                    cut++;
                 }
             } while (cut < text.Length);
 

@@ -13,15 +13,27 @@ namespace LittlePdf.Test.Functional
     public class FunctionalTests
     {
         [Fact]
+        public void TokenizerTest()
+        {
+            var tokenizer = new Tokenizer("Eris is the      second-largest  known\tdwarf-a-complicate-degenerating-progressing-peculiar-rhombosis-cultivating planet\r\nin the Solar System, slightly smaller by volume than the dwarf planet Pluto, although it is 27 percent more massive. Discovered in January 2005 by a team based at Palomar Observatory, it was named after Eris, the Greek goddess of strife and discord. The ninth-most-massive object directly orbiting the Sun, Eris is the largest object in the Solar System that has not been visited by a spacecraft.\r\n\nIt is a member of a high-eccentricity population known as the scattered disk and has one known moon, Dysnomia. It is about 96 astronomical units (14.4 billion kilometres; 8.9 billion miles) from the Sun, roughly three times as far away as Pluto. Except for some long-period comets, Eris and Dysnomia were the most distant known natural objects in the Solar System until 2018 VG18 was discovered in 2018.");
+
+            string token = null;
+            while ((token = tokenizer.Next()) != null)
+            {
+            }
+        }
+
+        [Fact]
         public void TextWrapperTest()
         {
             var tw = new TextWrapper(40);
-            var lines = tw.Wrap("Eris is the second-largest known dwarf-a-complicate-degenerating-progressing-peculiar-rhombosis-cultivating planet in the Solar System, slightly smaller by volume than the dwarf planet Pluto, although it is 27 percent more massive. Discovered in January 2005 by a team based at Palomar Observatory, it was named after Eris, the Greek goddess of strife and discord. The ninth-most-massive object directly orbiting the Sun, Eris is the largest object in the Solar System that has not been visited by a spacecraft. It is a member of a high-eccentricity population known as the scattered disk and has one known moon, Dysnomia. It is about 96 astronomical units (14.4 billion kilometres; 8.9 billion miles) from the Sun, roughly three times as far away as Pluto. Except for some long-period comets, Eris and Dysnomia were the most distant known natural objects in the Solar System until 2018 VG18 was discovered in 2018.");
+            var lines = tw.Wrap("Eris is the second-largest known dwarf-a-complicate-degenerating-progressing-peculiar-rhombosis-cultivating planet in the Solar System, slightly smaller by volume than the dwarf planet Pluto, although it is 27 percent more massive. Discovered in January 2005 by a team based at Palomar Observatory, it was named after Eris, the Greek goddess of strife and discord. The ninth-most-massive object directly orbiting the Sun, Eris is the largest object in the Solar System that has not been visited by a spacecraft.\r\n\nIt is a member of a high-eccentricity population known as the scattered disk and has one known moon, Dysnomia. It is about 96 astronomical units (14.4 billion kilometres; 8.9 billion miles) from the Sun, roughly three times as far away as Pluto. Except for some long-period comets, Eris and Dysnomia were the most distant known natural objects in the Solar System until 2018 VG18 was discovered in 2018.");
 
             var sb = new StringBuilder();
             foreach (var line in lines)
             {
-                for (int i = 0; i < line.RemainingSpace; i++) { sb.Append(" "); }
+                // Right align
+                for (int i = 0; i < line.RemainingWidth; i++) { sb.Append(" "); }
 
                 foreach (var word in line.Words)
                 {
@@ -32,7 +44,6 @@ namespace LittlePdf.Test.Functional
                     }
                 }
                 sb.Append("    ");
-                sb.Append(line.RemainingSpace.ToString("G29"));
                 sb.Append("\n");
             }
             var wrappedText = sb.ToString();
