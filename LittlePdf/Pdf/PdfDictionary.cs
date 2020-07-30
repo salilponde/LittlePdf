@@ -1,6 +1,7 @@
 ﻿using LittlePdf.Extensions;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace LittlePdf.Pdf
@@ -59,7 +60,10 @@ namespace LittlePdf.Pdf
                 await stream.WriteAsync(PdfSpec.Space);
 
                 await pair.Value.WriteAsync(stream);
-                await stream.WriteAsync(PdfSpec.Space);
+                if (pair.Key != Items.Last().Key)
+                {
+                    await stream.WriteAsync(PdfSpec.Space);
+                }
             }
 
             await stream.WriteAsync(PdfSpec.DictionaryEnd);

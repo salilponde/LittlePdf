@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace LittlePdf
@@ -16,7 +17,7 @@ namespace LittlePdf
 
         public Page AddPage()
         {
-            var page = new Page();
+            var page = new Page(this);
             Pages.Add(page);
             return page;
         }
@@ -70,6 +71,7 @@ namespace LittlePdf
 
             var pages = new List<PdfIndirectObject>();
             var pageRefs = new List<PdfIndirectObjectReference>();
+            var contentObjects = new List<PdfIndirectObject>();
             foreach (var page in Pages)
             {
                 var pageProps = new PdfDictionary();
@@ -79,9 +81,22 @@ namespace LittlePdf
 
                 pageProps.Add("Type", new PdfName("Page"));
                 pageProps.Add("Parent", pageTree.Reference);
+                if (page.Unit != 1.0)
+                {
+                    pageProps.Add("UserUnit", new PdfReal(page.Unit));
+                }
                 if (page.Width != DefaultPageWidth || page.Height != DefaultPageHeight)
                 {
                     pageProps.Add("MediaBox", new PdfArray(new List<PdfObject> { new PdfReal(0), new PdfReal(0), new PdfReal(page.Width), new PdfReal(page.Height) }));
+                }
+
+                var instructions = page.Paint();
+                if (!string.IsNullOrWhiteSpace(instructions))
+                {
+                    var contentStream = new PdfStream(Encoding.ASCII.GetBytes(instructions));
+                    var contentIndirectObject = new PdfIndirectObject(contentStream);
+                    contentObjects.Add(contentIndirectObject);
+                    pageProps.Add("Contents", new PdfIndirectObjectReference(contentIndirectObject));
                 }
             }
             pageTreeProps.Add("Kids", new PdfArray(pageRefs.Select(x => (PdfObject)x).ToList()));
@@ -96,6 +111,10 @@ namespace LittlePdf
             foreach (var page in pages)
             {
                 await writer.WriteAsync(page);
+            }
+            foreach (var contentObject in contentObjects)
+            {
+                await writer.WriteAsync(contentObject);
             }
             await writer.CloseAsync(documentCatalog, null);
         }

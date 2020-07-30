@@ -14,12 +14,14 @@ namespace LittlePdf.Pdf.Xref
     public class PdfXrefEntry : IPdfWriteable
     {
         public long ByteOffset { get; }
+        public int ObjectNumber { get; }
         public int GenerationNumber { get; }
         public XrefEntryType Type { get; }
 
-        public PdfXrefEntry(long byteOffset, int generationNumber, XrefEntryType type)
+        public PdfXrefEntry(long byteOffset, int objectNumber, int generationNumber, XrefEntryType type)
         {
             ByteOffset = byteOffset;
+            ObjectNumber = objectNumber;
             GenerationNumber = generationNumber;
             Type = type;
         }

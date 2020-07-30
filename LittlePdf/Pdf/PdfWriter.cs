@@ -15,16 +15,16 @@ namespace LittlePdf.Pdf
         public PdfWriter(Stream stream)
         {
             _stream = stream;
-            _xrefEntries.Add(new PdfXrefEntry(0, 65535, XrefEntryType.Free));
+            _xrefEntries.Add(new PdfXrefEntry(0, 0, 65535, XrefEntryType.Free));
             Task.Run(() => WriteHeaderAsync()).Wait();
         }
 
         public async Task WriteAsync(IPdfWriteable writeableObject)
         {
-            if (writeableObject is PdfIndirectObject)
+            if (writeableObject is PdfIndirectObject indirectObject)
             {
                 var offset = _stream.Position;
-                _xrefEntries.Add(new PdfXrefEntry(offset, 0, XrefEntryType.InUse));
+                _xrefEntries.Add(new PdfXrefEntry(offset, indirectObject.ObjectNumber, indirectObject.GenerationNumber, XrefEntryType.InUse));
             }
 
             await writeableObject.WriteAsync(_stream);

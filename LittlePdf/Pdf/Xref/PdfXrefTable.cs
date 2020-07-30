@@ -1,6 +1,7 @@
 ﻿using LittlePdf.Extensions;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace LittlePdf.Pdf.Xref
@@ -21,7 +22,7 @@ namespace LittlePdf.Pdf.Xref
             await stream.WriteAsync(PdfSpec.Space);
             await new PdfInteger(Entries.Count).WriteAsync(stream);
             await stream.WriteAsync(PdfSpec.NewLine);
-            foreach (var entry in Entries)
+            foreach (var entry in Entries.OrderBy(x => x.ObjectNumber))
             {
                 await entry.WriteAsync(stream);
             }

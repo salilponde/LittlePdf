@@ -71,8 +71,15 @@ namespace LittlePdf.Test.Functional
             var fHelveticaItalic = document.CreateFont("Helvetica-Oblique");
 
             var page1 = document.AddPage();
+            var line1 = page1.AddLine(10.0, 10.0, 300.0, 10.0);
+            line1.Style.Width = 2.0;
+            line1.Style.DashPattern = DashPattern.Dashed;
+            var line2 = page1.AddLine(10.0, 20.0, 200.0, 30.0);
+            line2.Style.Width = 4.0;
+            line2.Style.CapStyle = CapStyle.Round;
+
             var page2 = document.AddPage();
-            page2.Rotate();
+            page2.AddLine(30.0, 60.0, 400.0, 0.0);
 
             await document.SaveAsync(fileName);
         }
@@ -122,8 +129,9 @@ namespace LittlePdf.Test.Functional
             pageReferences.Add(new PdfIndirectObjectReference(page));
             pageDict.Add("Type", new PdfName("Page"));
             pageDict.Add("Parent", new PdfIndirectObjectReference(pageTree));
-            var c = Encoding.ASCII.GetBytes("BT /F1 24 Tf 175 720 Td (Hello World!)Tj ET");
-            var pageContentStream = new PdfStream(c, new PdfFlatDecodeStreamFilter());
+            var c = Encoding.ASCII.GetBytes("0.9 0.5 0.0 rg q 10 10 m 500 10 l 5 w [3] 0 d S Q 500 10 m 500 500 l S");
+            //var c = Encoding.ASCII.GetBytes("BT /F1 24 Tf 175 720 Td (Hello World!)Tj ET");
+            var pageContentStream = new PdfStream(c, new PdfNoStreamFilter());
             var pageContent = new PdfIndirectObject(pageContentStream);
             pageDict.Add("Contents", new PdfIndirectObjectReference(pageContent));
 
