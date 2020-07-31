@@ -7,6 +7,16 @@ namespace LittlePdf
         public double X { get; set; }
         public double Y { get; set; }
 
-        internal abstract void Paint(StringBuilder output, double x, double y, double height);
+        public double AbsoluteX => (Parent?.X ?? 0.0) + X;
+        public double AbsoluteY => (Parent?.Y ?? 0.0) + Y;
+
+        public Container Parent { get; }
+
+        public PageObject(Container parent)
+        {
+            Parent = parent;
+        }
+
+        internal abstract void Paint(Page page, StringBuilder output);
     }
 }

@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Text;
+﻿using System.Text;
 
 namespace LittlePdf
 {
@@ -9,11 +8,12 @@ namespace LittlePdf
         public double Height { get; private set; } = 842;
         public double Unit { get; private set; } = 1.0;
 
-        private List<PageObject> _objects { get; } = new List<PageObject>();
+        public Container Container { get; }
         internal Document Document { get; }
 
         public Page(Document document)
         {
+            Container = new Container(null, 0, 0, Width, Height);
             Document = document;
         }
 
@@ -24,24 +24,10 @@ namespace LittlePdf
             Height = tempWidth;
         }
 
-        public Line AddLine(double x1, double y1, double x2, double y2)
-        {
-            var line = new Line { X = x1, Y = y1, XEnd = x2, YEnd = y2 };
-            _objects.Add(line);
-            return line;
-        }
-
         public string Paint()
         {
             var output = new StringBuilder();
-
-            output.Append("30 742 150 95 re W n "); // Clipping rectangle. Use this for container with overflow hidden.
-
-            foreach (var @object in _objects)
-            {
-                @object.Paint(output, 0, 0, Height);
-            }
-
+            Container.Paint(this, output);
             return output.ToString();
         }
     }

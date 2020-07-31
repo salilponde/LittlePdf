@@ -6,12 +6,20 @@ namespace LittlePdf
     {
         public double XEnd { get; set; }
         public double YEnd { get; set; }
+
+        public double AbsoluteXEnd => (Parent?.AbsoluteX ?? 0.0) + XEnd;
+        public double AbsoluteYEnd => (Parent?.AbsoluteY ?? 0.0) + YEnd;
+
         public LineStyle Style { get; set; } = new LineStyle();
 
-        internal override void Paint(StringBuilder output, double x, double y, double height)
+        public Line(Container parent) : base(parent)
+        {
+        }
+
+        internal override void Paint(Page page, StringBuilder output)
         {
             Style.Paint(output);
-            output.Append($"{X + x} {height - (Y + y)} m {XEnd + x} {height - (YEnd + y)} l S ");
+            output.Append($"{AbsoluteX} {page.Height - AbsoluteY} m {AbsoluteXEnd} {page.Height - AbsoluteYEnd} l S ");
         }
     }
 }

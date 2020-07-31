@@ -13,6 +13,35 @@ namespace LittlePdf.Test.Functional
     public class FunctionalTests
     {
         [Fact]
+        public async Task DocumentTest()
+        {
+            var fileName = @"c:\temp\d.pdf";
+            File.Delete(fileName);
+
+            var document = new Document();
+            var fHelvetica = document.CreateFont("Helvetica");
+            var fHelveticaBold = document.CreateFont("Helvetica-Bold");
+            var fHelveticaItalic = document.CreateFont("Helvetica-Oblique");
+
+            var page1 = document.AddPage();
+            var line1 = page1.Container.AddLine(10.0, 10.0, 300.0, 10.0);
+            line1.Style.Width = 2.0;
+            line1.Style.DashPattern = DashPattern.Dashed;
+            var line2 = page1.Container.AddLine(10.0, 20.0, 200.0, 30.0);
+            line2.Style.Width = 4.0;
+            line2.Style.CapStyle = CapStyle.Round;
+
+            var c = page1.Container.AddContainer(300, 150, 100, 100);
+            c.AddLine(0, 0, 100, 100);
+            c.AddLine(-100, 10, 200, 10);
+
+            var page2 = document.AddPage();
+            page2.Container.AddLine(30.0, 60.0, 400.0, 0.0);
+
+            await document.SaveAsync(fileName);
+        }
+
+        [Fact]
         public void TokenizerTest()
         {
             var tokenizer = new Tokenizer("Eris is the      second-largest  known\tdwarf-a-complicate-degenerating-progressing-peculiar-rhombosis-cultivating planet\r\nin the Solar System, slightly smaller by volume than the dwarf planet Pluto, although it is 27 percent more massive. Discovered in January 2005 by a team based at Palomar Observatory, it was named after Eris, the Greek goddess of strife and discord. The ninth-most-massive object directly orbiting the Sun, Eris is the largest object in the Solar System that has not been visited by a spacecraft.\r\n\nIt is a member of a high-eccentricity population known as the scattered disk and has one known moon, Dysnomia. It is about 96 astronomical units (14.4 billion kilometres; 8.9 billion miles) from the Sun, roughly three times as far away as Pluto. Except for some long-period comets, Eris and Dysnomia were the most distant known natural objects in the Solar System until 2018 VG18 was discovered in 2018.");
@@ -47,41 +76,6 @@ namespace LittlePdf.Test.Functional
                 sb.Append("\n");
             }
             var wrappedText = sb.ToString();
-        }
-
-        [Fact]
-        public async Task DocumentTest()
-        {
-            //var p = new PrivateFontCollection();
-            //var fontFiles = Directory.GetFiles(Environment.GetFolderPath(Environment.SpecialFolder.Fonts), "Calibri*");
-            //foreach (var fontFile in fontFiles)
-            //{
-            //    p.AddFontFile(fontFile);
-            //}
-
-            //var installedFonts = new InstalledFontCollection();
-            //var families = installedFonts.Families;
-
-            var fileName = @"c:\temp\d.pdf";
-            File.Delete(fileName);
-
-            var document = new Document();
-            var fHelvetica = document.CreateFont("Helvetica");
-            var fHelveticaBold = document.CreateFont("Helvetica-Bold");
-            var fHelveticaItalic = document.CreateFont("Helvetica-Oblique");
-
-            var page1 = document.AddPage();
-            var line1 = page1.AddLine(10.0, 10.0, 300.0, 10.0);
-            line1.Style.Width = 2.0;
-            line1.Style.DashPattern = DashPattern.Dashed;
-            var line2 = page1.AddLine(10.0, 20.0, 200.0, 30.0);
-            line2.Style.Width = 4.0;
-            line2.Style.CapStyle = CapStyle.Round;
-
-            var page2 = document.AddPage();
-            page2.AddLine(30.0, 60.0, 400.0, 0.0);
-
-            await document.SaveAsync(fileName);
         }
 
         [Fact]
