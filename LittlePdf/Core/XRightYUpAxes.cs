@@ -2,10 +2,6 @@
 {
     public class XRightYUpAxes : IAxes
     {
-        public XRightYUpAxes(double pageWidth, double pageHeight)
-        {
-        }
-
         public void SetPageSize(double width, double height)
         {
         }
