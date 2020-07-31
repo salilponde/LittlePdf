@@ -1,4 +1,5 @@
-﻿using LittlePdf.Pdf;
+﻿using LittlePdf.Core;
+using LittlePdf.Pdf;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -15,9 +16,24 @@ namespace LittlePdf
         public List<Font> Fonts { get; } = new List<Font>();
         private int _nextFontId = 1;
 
+        private IAxes GetDefaultAxes()
+        {
+            return new XRightYDownAxes(DefaultPageWidth, DefaultPageHeight);
+        }
+
         public Page AddPage()
         {
-            var page = new Page(this);
+            var page = new Page(this, GetDefaultAxes());
+            Pages.Add(page);
+            return page;
+        }
+
+        public Page AddPage(int width, int height, IAxes axes = null)
+        {
+            if (axes == null) axes = GetDefaultAxes();
+
+            var page = new Page(this, axes);
+            page.SetSize(width, height);
             Pages.Add(page);
             return page;
         }

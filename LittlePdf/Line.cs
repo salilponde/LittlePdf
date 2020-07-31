@@ -19,7 +19,9 @@ namespace LittlePdf
         internal override void Paint(Page page, StringBuilder output)
         {
             Style.Paint(output);
-            output.Append($"{AbsoluteX} {page.Height - AbsoluteY} m {AbsoluteXEnd} {page.Height - AbsoluteYEnd} l S ");
+            var (x1, y1) = page.Axes.GetPoint(AbsoluteX, AbsoluteY);
+            var (x2, y2) = page.Axes.GetPoint(AbsoluteXEnd, AbsoluteYEnd);
+            output.Append($"{x1} {y1} m {x2} {y2} l S ");
         }
     }
 }

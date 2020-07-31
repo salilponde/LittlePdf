@@ -22,7 +22,8 @@ namespace LittlePdf
         {
             if (Clip)
             {
-                output.Append($"{AbsoluteX} {page.Height - (AbsoluteY + Height)} {Width} {Height} re W n ");
+                var (x, y) = page.Axes.GetRectangleCorner(AbsoluteX, AbsoluteY, Width, Height);
+                output.Append($"{x} {y} {Width} {Height} re W n ");
             }
 
             foreach (var child in Children) child.Paint(page, output);
