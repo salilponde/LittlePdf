@@ -1,5 +1,6 @@
 ﻿using LittlePdf.Core;
 using LittlePdf.Pdf;
+using LittlePdf.Pdf.HighLevel;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -53,86 +54,78 @@ namespace LittlePdf
 
         public async Task SaveAsync(Stream stream)
         {
-            var documentCatalogProps = new PdfDictionary();
-            var documentCatalog = new PdfIndirectObject(documentCatalogProps);
-            var pageTreeProps = new PdfDictionary();
-            var pageTree = new PdfIndirectObject(pageTreeProps);
+            var pdfDocumentCatalog = new PdfDocumentCatalog();
+            var pdfPageTree = new PdfPageTree();
+            pdfDocumentCatalog.PagesReference = pdfPageTree.Reference;
 
-            documentCatalogProps.Add("Type", new PdfName("Catalog"));
-            documentCatalogProps.Add("Pages", pageTree.Reference);
-
-            var fontToIndirectObjects = new Dictionary<Font, PdfIndirectObject>();
+            var pdfFonts = new List<PdfFont>();
+            var fontToPdfFont = new Dictionary<Font, PdfFont>();
             foreach (var font in Fonts)
             {
-                var fontProps = new PdfDictionary();
-                var fontIndirectObject = new PdfIndirectObject(fontProps);
-                fontToIndirectObjects.Add(font, fontIndirectObject);
-                fontProps.Add("Type", new PdfName("Font"));
-                fontProps.Add("Subtype", new PdfName(font.Type));
-                fontProps.Add("BaseFont", new PdfName(font.Name));
-                fontProps.Add("Encoding", new PdfName(font.Encoding));
+                var pdfFont = new PdfFont
+                {
+                    Subtype = new PdfName(font.Type),
+                    BaseFont = new PdfName(font.Name),
+                    Encoding = new PdfName(font.Encoding)
+                };
+                pdfFonts.Add(pdfFont);
+                fontToPdfFont[font] = pdfFont;
             }
 
-            pageTreeProps.Add("Type", new PdfName("Pages"));
-            pageTreeProps.Add("MediaBox", new PdfArray(new List<PdfObject> { new PdfReal(0), new PdfReal(0), new PdfReal(DefaultPageWidth), new PdfReal(DefaultPageHeight) }));
-            pageTreeProps.Add("Count", new PdfInteger(Pages.Count));
-            var resources = new PdfDictionary();
-            var fontResources = new PdfDictionary();
-            resources.Add("Font", fontResources);
+            pdfPageTree.MediaBox = new PdfRectangle(0, 0, DefaultPageWidth, DefaultPageHeight);
+            pdfPageTree.Resources = new PdfResources
+            {
+                Fonts = new PdfFontResources()
+            };
             foreach (var font in Fonts)
             {
-                fontResources.Add($"F{font.Id}", fontToIndirectObjects[font].Reference);
+                pdfPageTree.Resources.Fonts.Add($"F{font.Id}", fontToPdfFont[font].Reference);
             }
-            pageTreeProps.Add("Resouces", fontResources);
 
-            var pages = new List<PdfIndirectObject>();
-            var pageRefs = new List<PdfIndirectObjectReference>();
-            var contentObjects = new List<PdfIndirectObject>();
+            var pdfContentStreams = new List<PdfContenStream>();
+            var pdfPages = new List<PdfPage>();
             foreach (var page in Pages)
             {
-                var pageProps = new PdfDictionary();
-                var pageIndirectObject = new PdfIndirectObject(pageProps);
-                pages.Add(pageIndirectObject);
-                pageRefs.Add(pageIndirectObject.Reference);
+                var pdfPage = new PdfPage();
+                pdfPages.Add(pdfPage);
 
-                pageProps.Add("Type", new PdfName("Page"));
-                pageProps.Add("Parent", pageTree.Reference);
-                if (page.Unit != 1.0)
-                {
-                    pageProps.Add("UserUnit", new PdfReal(page.Unit));
-                }
+                pdfPage.Parent = pdfPageTree.Reference;
+                if (page.Unit != 1.0) pdfPage.UserUnit = new PdfReal(page.Unit);
                 if (page.Width != DefaultPageWidth || page.Height != DefaultPageHeight)
                 {
-                    pageProps.Add("MediaBox", new PdfArray(new List<PdfObject> { new PdfReal(0), new PdfReal(0), new PdfReal(page.Width), new PdfReal(page.Height) }));
+                    pdfPage.MediaBox = new PdfRectangle(0, 0, page.Width, page.Height);
                 }
 
                 var instructions = page.Paint();
                 if (!string.IsNullOrWhiteSpace(instructions))
                 {
-                    var contentStream = new PdfStream(Encoding.ASCII.GetBytes(instructions));
-                    var contentIndirectObject = new PdfIndirectObject(contentStream);
-                    contentObjects.Add(contentIndirectObject);
-                    pageProps.Add("Contents", new PdfIndirectObjectReference(contentIndirectObject));
+                    var pdfContentStream = new PdfContenStream
+                    {
+                        Stream = new PdfStream(Encoding.ASCII.GetBytes(instructions)),
+                        // Filter = PdfStreamFilter.FlateDecode // Temporarily no using. Uncomment after development complete
+                    };
+                    pdfContentStreams.Add(pdfContentStream);
+                    pdfPage.Contents = pdfContentStream.Reference;
                 }
             }
-            pageTreeProps.Add("Kids", new PdfArray(pageRefs.Select(x => (PdfObject)x).ToList()));
+            pdfPageTree.Kids = pdfPages.Select(x => x.Reference).ToList();
 
             var writer = new PdfWriter(stream);
-            await writer.WriteAsync(documentCatalog);
-            await writer.WriteAsync(pageTree);
-            foreach (var pair in fontToIndirectObjects)
+            await writer.WriteAsync(pdfDocumentCatalog);
+            await writer.WriteAsync(pdfPageTree);
+            foreach (var pdfFont in pdfFonts)
             {
-                await writer.WriteAsync(pair.Value);
+                await writer.WriteAsync(pdfFont);
             }
-            foreach (var page in pages)
+            foreach (var pdfPage in pdfPages)
             {
-                await writer.WriteAsync(page);
+                await writer.WriteAsync(pdfPage);
             }
-            foreach (var contentObject in contentObjects)
+            foreach (var pdfContentStream in pdfContentStreams)
             {
-                await writer.WriteAsync(contentObject);
+                await writer.WriteAsync(pdfContentStream);
             }
-            await writer.CloseAsync(documentCatalog, null);
+            await writer.CloseAsync(pdfDocumentCatalog, null);
         }
     }
 }

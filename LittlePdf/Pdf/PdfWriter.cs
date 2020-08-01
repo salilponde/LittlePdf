@@ -53,7 +53,7 @@ namespace LittlePdf.Pdf
         {
             var dictionary = new PdfDictionary(new Dictionary<string, PdfObject>());
             dictionary.Add("Size", _xrefEntries.Count);
-            dictionary.Add("Root", new PdfIndirectObjectReference(root));
+            dictionary.Add("Root", root.Reference);
             if (info != null) dictionary.Add("Info", new PdfIndirectObjectReference(info));
 
             await _stream.WriteAsync(Encoding.ASCII.GetBytes("trailer\n"));

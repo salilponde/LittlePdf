@@ -30,6 +30,17 @@ namespace LittlePdf.Pdf
         public static byte[] XrefInUse = Encoding.ASCII.GetBytes("n");
         public static byte[] XrefFree = Encoding.ASCII.GetBytes("f");
 
+        public static class Names
+        {
+            public readonly static string Count = "Count";
+            public readonly static string Font = "Font";
+            public readonly static string Kids = "Kids";
+            public readonly static string MediaBox = "MediaBox";
+            public readonly static string Pages = "Pages";
+            public readonly static string Resources = "Resources";
+            public readonly static string Type = "Type";
+        }
+
         public static bool IsDelimiterCharacter(char c)
         {
             switch (c)

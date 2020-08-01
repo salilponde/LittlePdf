@@ -1,87 +1,13 @@
-﻿using System;
+﻿using LittlePdf.Core;
+using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace LittlePdf.Utils
 {
-    public class Tokenizer
-    {
-        private string _text;
-        private int _length;
-        private int _pos = 0;
-
-        public Tokenizer(string text)
-        {
-            _text = text;
-            _length = text.Length;
-        }
-
-        public string Next()
-        {
-            while (_pos < _length)
-            {
-                var c = _text[_pos];
-
-                if (c == '\r')
-                {
-                    _pos++;
-                    if (_text[_pos] == '\n') _pos++;
-                    return "\n";
-                }
-                else if (c == '\n')
-                {
-                    _pos++;
-                    return "\n";
-                }
-                else if (c == ' ' || c == '\t')
-                {
-                    _pos++;
-
-                    var sb = new StringBuilder();
-                    while (true)
-                    {
-                        c = _text[_pos];
-                        if (c == ' ' || c == '\t')
-                        {
-                            sb.Append(' ');
-                            _pos++;
-                        }
-                        else
-                        {
-                            break;
-                        }
-                    }
-                    var spaces = sb.ToString();
-                    if (!string.IsNullOrEmpty(spaces)) return spaces;
-                }
-                else
-                {
-                    var sb = new StringBuilder();
-                    while (_pos < _length)
-                    {
-                        c = _text[_pos];
-                        if (c != ' ' && c != '\t' && c != '\r' && c != '\n')
-                        {
-                            sb.Append(c);
-                            _pos++;
-                        }
-                        else
-                        {
-                            break;
-                        }
-                    }
-                    return sb.ToString();
-                }
-            }
-
-            return null;
-        }
-    }
-
     public class Line
     {
-        private double _totalWidth;
-        private double _spaceWidth;
+        private readonly double _totalWidth;
+        private readonly double _spaceWidth;
         private double _currentWordsWidth;
         private double _currentWordsAndSpacesWidth;
 
@@ -125,32 +51,30 @@ namespace LittlePdf.Utils
 
     public class TextWrapper
     {
-        private double _boxWidth;
-        private double _boxHeight;
-        private double _spaceWidth;
+        private readonly double _spaceWidth;
+        private readonly ITextTokenizer _tokenizer;
 
-        public TextWrapper(double width, double height = -1)
+        public TextWrapper(ITextTokenizer textTokenizer = null)
         {
-            _boxWidth = width;
-            _boxHeight = height;
+            _tokenizer = textTokenizer ?? new WhitespaceTextTokenizer();
             _spaceWidth = GetTextWidth(" ");
         }
 
-        public List<Line> Wrap(string text)
+        public List<Line> Wrap(string text, double width)
         {
             var lines = new List<Line>();
             if (text == null || string.IsNullOrEmpty(text)) return lines;
 
-            var line = new Line(_boxWidth, _spaceWidth);
+            var line = new Line(width, _spaceWidth);
 
-            var tokenizer = new Tokenizer(text);
+            _tokenizer.SetText(text);
             string token;
-            while ((token = tokenizer.Next()) != null)
+            while ((token = _tokenizer.GetNextToken()) != null)
             {
                 if (token == "\n")
                 {
                     lines.Add(line);
-                    line = new Line(_boxWidth, _spaceWidth);
+                    line = new Line(width, _spaceWidth);
                 }
                 else
                 {
@@ -159,10 +83,10 @@ namespace LittlePdf.Utils
                     {
                         line.AddWord(token, wordWidth);
                     }
-                    else 
+                    else
                     {
                         lines.Add(line);
-                        line = new Line(_boxWidth, _spaceWidth);
+                        line = new Line(width, _spaceWidth);
 
                         if (line.CanHold(wordWidth))
                         {
@@ -176,7 +100,7 @@ namespace LittlePdf.Utils
                                 var part1Width = GetTextWidth(part1);
                                 line.AddWord(part1, part1Width);
                                 lines.Add(line);
-                                line = new Line(_boxWidth, _spaceWidth);
+                                line = new Line(width, _spaceWidth);
 
                                 if (!string.IsNullOrEmpty(part2))
                                 {

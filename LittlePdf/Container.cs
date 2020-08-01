@@ -42,6 +42,14 @@ namespace LittlePdf
             return line;
         }
 
+        // Convert to extension method
+        public Text AddText(double x, double y, string text)
+        {
+            var @object = new Text(this) { X = x, Y = y, Value = text };
+            Children.Add(@object);
+            return @object;
+        }
+
         public Container AddContainer(double x, double y, double width, double height)
         {
             var container = new Container(this, x, y, width, height);

@@ -9,9 +9,9 @@ namespace LittlePdf.Pdf
         private static int _nextObjectNumber = 1;
         public int ObjectNumber { get; private set; }
         public int GenerationNumber { get; set; }
-        public PdfObject Value { get; private set; }
-
+        protected PdfObject Value { get; set; }
         private PdfIndirectObjectReference _reference;
+
         public PdfIndirectObjectReference Reference
         {
             get
@@ -19,6 +19,11 @@ namespace LittlePdf.Pdf
                 if (_reference == null) _reference = new PdfIndirectObjectReference(this);
                 return _reference;
             }
+        }
+
+        protected PdfIndirectObject()
+        {
+            Initialize(_nextObjectNumber++, 0, null);
         }
 
         public PdfIndirectObject(PdfObject value)
@@ -38,15 +43,24 @@ namespace LittlePdf.Pdf
             Value = value;
         }
 
-        public async Task WriteAsync(Stream stream)
+        public virtual async Task WriteAsync(Stream stream)
+        {
+            await WriteHeadAsync(stream);            
+            await Value.WriteAsync(stream);
+            await WriteTailAsync(stream);
+        }
+
+        protected async Task WriteHeadAsync(Stream stream)
         {
             await new PdfInteger(ObjectNumber).WriteAsync(stream);
             await stream.WriteAsync(PdfSpec.Space);
             await new PdfInteger(GenerationNumber).WriteAsync(stream);
             await stream.WriteAsync(PdfSpec.Space);
-
             await stream.WriteAsync(PdfSpec.IndirectObjectBegin);
-            await Value.WriteAsync(stream);
+        }
+
+        protected async Task WriteTailAsync(Stream stream)
+        {
             await stream.WriteAsync(PdfSpec.IndirectObjectEnd);
         }
     }
