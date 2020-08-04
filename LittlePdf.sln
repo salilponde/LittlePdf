@@ -13,7 +13,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FontReader", "FontReader\FontReader.csproj", "{5CC6FA07-6191-4F76-A95E-5C4C7F42C345}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DumpFont.Lib", "..\DumpFont\src\DumpFont.Lib\DumpFont.Lib.csproj", "{A3747830-7F88-4F84-B6DD-2232825AB623}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,10 +29,10 @@ Global
 		{381A0E3A-6BC7-48C0-A033-A1BA6C8DC1D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{381A0E3A-6BC7-48C0-A033-A1BA6C8DC1D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{381A0E3A-6BC7-48C0-A033-A1BA6C8DC1D5}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5CC6FA07-6191-4F76-A95E-5C4C7F42C345}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5CC6FA07-6191-4F76-A95E-5C4C7F42C345}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5CC6FA07-6191-4F76-A95E-5C4C7F42C345}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5CC6FA07-6191-4F76-A95E-5C4C7F42C345}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A3747830-7F88-4F84-B6DD-2232825AB623}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A3747830-7F88-4F84-B6DD-2232825AB623}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A3747830-7F88-4F84-B6DD-2232825AB623}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A3747830-7F88-4F84-B6DD-2232825AB623}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

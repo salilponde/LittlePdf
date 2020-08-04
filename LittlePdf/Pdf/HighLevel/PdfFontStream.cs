@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace LittlePdf.Pdf.HighLevel
 {
-    public class PdfContentStream : PdfIndirectObject
+    public class PdfFontStream : PdfIndirectObject
     {
         public PdfStream Stream { get; set; }
         public PdfStreamFilter Filter { get; set; }
@@ -25,6 +25,7 @@ namespace LittlePdf.Pdf.HighLevel
             var encodedStream = streamFilter.Encode(Stream.Value);
             var pdfDictionary = new PdfDictionary();
             pdfDictionary.Add("Length", encodedStream.Length);
+            pdfDictionary.Add("Length1", Stream.Value.Length);
             if (Filter != PdfStreamFilter.NoFilter) pdfDictionary.Add("Filter", new PdfName(Filter.ToString()));
             Value = new PdfStream(encodedStream);
 

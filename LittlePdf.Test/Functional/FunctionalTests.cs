@@ -19,13 +19,14 @@ namespace LittlePdf.Test.Functional
             //var f1 = Core.Text.Font.Build.FromFile("a").Size(20).Embed().Build();
 
             var document = new Document();
-            document.CreateFont("Helvetica");
-            document.CreateFont("Helvetica-Bold");
-            document.CreateFont("Helvetica-Oblique");
+
+            var font1Style = new FontStyle { Underline = true, StrikeThrough = true, Color = "#f00" };
+            var font1 = Font.ReadFromFile(@"C:\Windows\fonts\calibri.TTF", 16, font1Style);
+            document.AddFont(font1);
 
             var page1 = document.AddPage();
 
-            var t = page1.Container.AddText(10.0, 0, "Hey, this is amazing!");
+            var t = page1.Container.AddText(10.0, 0, "Hey, this is amazing! \x80");
 
             var line1 = page1.Container.AddLine(10.0, 10.0, 10.0, 10.0 + 24.0);
             line1.Style.Width = 1.0;

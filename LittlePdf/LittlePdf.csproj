@@ -11,7 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FontReader\FontReader.csproj" />
+    <ProjectReference Include="..\..\DumpFont\src\DumpFont.Lib\DumpFont.Lib.csproj" />
   </ItemGroup>
 
 </Project>

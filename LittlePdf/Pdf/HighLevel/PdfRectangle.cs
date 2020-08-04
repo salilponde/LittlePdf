@@ -5,26 +5,26 @@ namespace LittlePdf.Pdf.HighLevel
 {
     public class PdfRectangle : PdfObject
     {
-        public double X { get; }
-        public double Y { get; }
-        public double Width { get; }
-        public double Height { get; }
+        public double X1 { get; }
+        public double Y1 { get; }
+        public double X2 { get; }
+        public double Y2 { get; }
 
-        public PdfRectangle(double x, double y, double width, double height)
+        public PdfRectangle(double x1, double y1, double x2, double y2)
         {
-            X = x;
-            Y = y;
-            Width = width;
-            Height = height;
+            X1 = x1;
+            Y1 = y1;
+            X2 = x2;
+            Y2 = y2;
         }
 
         public override async Task WriteAsync(Stream stream)
         {
             var array = new PdfArray();
-            array.Add(X);
-            array.Add(Y);
-            array.Add(Width);
-            array.Add(Height);
+            array.Add(X1);
+            array.Add(Y1);
+            array.Add(X2);
+            array.Add(Y2);
             await array.WriteAsync(stream);
         }
     }

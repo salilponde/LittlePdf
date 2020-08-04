@@ -13,8 +13,8 @@ namespace LittlePdf.Test.Functional
         public void ExtractStream()
         {
             var fileName = @"C:\Users\sal\Desktop\Hey.pdf";
-            var offset = 540;
-            var compressedSize = 1096;
+            var offset = 550;
+            var compressedSize = 1132;
 
             var file = File.OpenRead(fileName);
             file.Seek(offset, SeekOrigin.Begin);
